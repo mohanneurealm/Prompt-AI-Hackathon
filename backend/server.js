@@ -4,7 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { summarizeRepo, analyzeCode, analyzeJiraTicket } from './llm.js';
+import { analyzeJiraTicket } from './llm.js';
 
 dotenv.config();
 
@@ -43,40 +43,6 @@ function cleanJSON(text) {
 
 
 // === Routes ===
-
-app.post("/summarize", async (req, res) => {
-  const { githubUrl } = req.body;
-  if (!githubUrl) {
-    return res.status(400).json({ error: "GitHub URL is required." });
-  }
-
-  try {
-    const result = await summarizeRepo(githubUrl);
-    const cleaned = cleanJSON(result);
-    const parsed = JSON.parse(cleaned);
-    res.json(parsed);
-  } catch (err) {
-    console.error("Summarize error:", err.message);
-    res.status(500).json({ error: "Failed to summarize GitHub repo." });
-  }
-});
-
-app.post("/analyze-code", async (req, res) => {
-  const { code } = req.body;
-  if (!code) {
-    return res.status(400).json({ error: "Code is required." });
-  }
-
-  try {
-    const result = await analyzeCode(code);
-    const cleaned = cleanJSON(result);
-    const parsed = JSON.parse(cleaned);
-    res.json(parsed);
-  } catch (err) {
-    console.error("Code analysis error:", err.message);
-    res.status(500).json({ error: "Failed to analyze code." });
-  }
-});
 
 app.post("/analyze-jira", async (req, res) => {
   const { ticket } = req.body;
