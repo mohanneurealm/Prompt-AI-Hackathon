@@ -22,5 +22,5 @@ A powerful AI-based tool to analyze JIRA tickets, summarize key information, ext
 
 1. **Clone the repo**
    ```bash
-   git clone https://github.com/your-username/prompt-ai-hackathon.git
+   git clone https://github.com/mohanneurealm/prompt-ai-hackathon.git
    cd prompt-ai-hackathon
