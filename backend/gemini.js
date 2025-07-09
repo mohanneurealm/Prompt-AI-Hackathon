@@ -4,88 +4,37 @@ import axios from 'axios';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-export async function summarizeRepo(githubUrl) {
+export async function analyzeJiraTicket(ticketJson) {
+  const ticketString = JSON.stringify(ticketJson, null, 2);
   const prompt = `
-Given the public GitHub repository URL: ${githubUrl}
+You are a JIRA expert AI assistant. Analyze the following JIRA ticket data.
 
-Extract and provide the following details strictly in the JSON format mentioned below:
+---
+${ticketString}
+---
 
-1. Author username (GitHub user) and their profile URL.
-2. Date of repository creation (if available).
-3. Type of repository (e.g., website, machine learning project, API, CLI tool, etc.).
-4. A short summary explaining what this repository is about.
-5. Languages used (comma-separated).
-6. Important files: list of main files, each with its:
-   - Filename
-   - File URL
-   - Brief 2–3 lines explanation.
-7. Flow of the code: Explain how the code executes, from start to end, step-by-step, in 5–7 sentences.
+Return a professional analysis strictly in this JSON format:
 
-Format your answer exactly like this inside a JSON:
-
-\`\`\`json
+\\\`json
 {
-  "author": {"name": "", "url": ""},
-  "date": "",
-  "type": "",
   "summary": "",
-  "languages": "",
-  "files": [
-    {"filename": "", "url": "", "description": ""},
-    {"filename": "", "url": "", "description": ""}
-  ],
-  "flow": ""
-}
-\`\`\`
-
-Strictly no extra words outside JSON block. And remember do not hallucinate any information. The information you get and the fies and url must be in that repository.
-`;
-
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      contents: [{ role: "user", parts: [{ text: prompt }] }]
-    },
-    { headers: { "Content-Type": "application/json" } }
-  );
-
-  const reply = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  console.log("🔍 Gemini raw reply:", reply);
-  return reply; // ✅ raw text returned (no parsing here)
-}
-
-
-export async function analyzeCode(codeText) {
-  const prompt = `
-You are a professional code analyst.
-
-Here is a block of code:
----
-${codeText}
----
-
-Break it down and return the following strictly in this JSON format:
-
-\`\`\`json
-{
-  "language": "",
   "type": "",
-  "segments": [
-    {"part": "Function definition", "description": "This defines the main sorting function that..."},
-    {"part": "Loop structure", "description": "This loop iterates through..."},
-    {"part": "...", "description": "..."}
+  "priority": "",
+  "status": "",
+  "insights": [
+    "Short insight 1 based on fields like description, comments, etc.",
+    "Short insight 2",
+    "..."
   ],
-  "flow": "Describe the step-by-step flow of this program",
-  "time_complexity": "",
-  "space_complexity": ""
+  "recommendation": "One or two lines of recommendation based on the issue's data."
 }
-\`\`\`
+\\\`
 
-Strictly return only the JSON block. Do not hallucinate. Base all answers on the provided code.
+No extra text. Do not make up details that are not in the JSON. Keep the insights realistic and helpful.
 `;
 
   const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
     {
       contents: [{ role: "user", parts: [{ text: prompt }] }]
     },
@@ -93,6 +42,6 @@ Strictly return only the JSON block. Do not hallucinate. Base all answers on the
   );
 
   const reply = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  console.log("📊 Gemini code analysis reply:", reply);
-  return reply; 
+  console.log("📋 Gemini JIRA analysis reply:", reply);
+  return reply;
 }

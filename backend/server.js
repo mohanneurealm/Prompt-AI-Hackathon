@@ -4,7 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {summarizeRepo, analyzeCode } from './gemini.js'; // ✅ NEW import here
+import {analyzeJiraTicket} from './gemini.js'; 
 
 dotenv.config();
 
@@ -23,11 +23,11 @@ app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // Serve the frontend/index.html on root
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
 function cleanJSON(text) {
-  return text.replace(/```json|```/g, '').trim();
+  return text.replace(/json|/g, '').trim();
 }
 
 // ========================= GEMINI-BASED APIs =========================
@@ -41,7 +41,7 @@ app.post("/summarize", async (req, res) => {
   try {
     const result = await summarizeRepo(githubUrl);
     const cleanedResult = cleanJSON(result);
-    const parsedResult = JSON.parse(cleanedResult); // ✅ now safe
+    const parsedResult = JSON.parse(cleanedResult);
     console.log(parsedResult);
     res.json(parsedResult);
   } catch (error) {
@@ -49,7 +49,6 @@ app.post("/summarize", async (req, res) => {
     res.status(500).json({ error: "Something went wrong parsing the response." });
   }
 });
-
 
 app.post("/analyze-code", async (req, res) => {
   const { code } = req.body;
@@ -59,7 +58,7 @@ app.post("/analyze-code", async (req, res) => {
 
   try {
     const result = await analyzeCode(code);
-    const cleaned = result.replace(/```json|```/g, '').trim();
+    const cleaned = cleanJSON(result);
     const parsed = JSON.parse(cleaned);
     res.json(parsed);
   } catch (err) {
@@ -68,7 +67,22 @@ app.post("/analyze-code", async (req, res) => {
   }
 });
 
+app.post("/analyze-jira", async (req, res) => {
+  const { ticket } = req.body;
+  if (!ticket) {
+    return res.status(400).json({ error: "JIRA ticket JSON is required." });
+  }
 
+  try {
+    const result = await analyzeJiraTicket(ticket);
+    const cleaned = cleanJSON(result);
+    const parsed = JSON.parse(cleaned);
+    res.json(parsed);
+  } catch (err) {
+    console.error("JIRA analysis error:", err.message);
+    res.status(500).json({ error: "Failed to analyze JIRA ticket." });
+  }
+});
 
 // ========================= Server Listen =========================
 app.listen(port, () => {
