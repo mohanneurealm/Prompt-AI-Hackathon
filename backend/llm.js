@@ -21,61 +21,6 @@ async function callGroq(prompt, role = 'system', systemMessage = 'You are an int
   return res.choices[0]?.message?.content || '';
 }
 
-export async function summarizeRepo(githubUrl) {
-  const prompt = `
-Given the public GitHub repository URL: ${githubUrl}
-
-Extract and return the following strictly in JSON format:
-
-\\\`json
-{
-  "author": {"name": "", "url": ""},
-  "date": "",
-  "type": "",
-  "summary": "",
-  "languages": "",
-  "files": [
-    {"filename": "", "url": "", "description": ""}
-  ],
-  "flow": ""
-}
-\\\`
-
-Only return the JSON. Do not hallucinate any values. Use only the information from the repo.
-`;
-
-  return callGroq(prompt, 'system', 'You are a GitHub repository summarizer.');
-}
-
-export async function analyzeCode(codeText) {
-  const prompt = `
-Here is a code block:
----
-${codeText}
----
-
-Analyze and return this JSON:
-
-\\\`json
-{
-  "language": "",
-  "type": "",
-  "segments": [
-    {"part": "Function definition", "description": ""},
-    {"part": "Loop structure", "description": ""}
-  ],
-  "flow": "",
-  "time_complexity": "",
-  "space_complexity": ""
-}
-\\\`
-
-Do not return anything outside the JSON block. Use only the code provided to make your observations.
-`;
-
-  return callGroq(prompt, 'system', 'You are a code analysis expert.');
-}
-
 export async function analyzeJiraTicket(ticketJson) {
   const ticketString = JSON.stringify(ticketJson, null, 2);
   const prompt = `
